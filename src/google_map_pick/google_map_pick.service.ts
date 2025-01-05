@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ResultData } from 'src/utils/result';
+import { ResultData } from '../utils/result';
 import { GoogleMapPick } from './entities/google_map_pick.entity';
 import { Repository } from 'typeorm';
 

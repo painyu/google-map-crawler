@@ -3,7 +3,7 @@ import { CreateScheduleJobDto } from './dto/create-schedule_job.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ScheduleJob } from './entities/schedule_job.entity';
 import { Repository } from 'typeorm';
-import { ResultData } from 'src/utils/result';
+import { ResultData } from '../utils/result';
 import { UUID } from 'typeorm/driver/mongodb/bson.typings';
 
 @Injectable()

@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { ScheduleJobService } from './schedule_job.service';
 import { CreateScheduleJobDto } from './dto/create-schedule_job.dto';
-import { ResultData } from 'src/utils/result';
+import { ResultData } from '../utils/result';
 
 @Controller('schedule/job')
 export class ScheduleJobController {
