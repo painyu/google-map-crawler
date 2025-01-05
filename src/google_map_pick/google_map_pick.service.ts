@@ -17,11 +17,17 @@ export class GoogleMapPickService {
     if (uuid) {
       queryBuilder.andWhere('google_map_pick.uuid > :uuid', { uuid });
     }
-    const googleMapList = await queryBuilder.take(5).getManyAndCount();
+    const min = 3;
+    const max = 5;
+    const take = Math.floor(Math.random() * (max - min + 1)) + min;
+    const googleMapList = await queryBuilder
+      .orderBy({ uuid: 'ASC' })
+      .take(take)
+      .getManyAndCount();
     return ResultData.ok({
       list: googleMapList[0],
-      total: googleMapList[1],
-      uuid: googleMapList[0].length === 0 ? '' : googleMapList[0][4].uuid,
+      uuid:
+        googleMapList[0].length === 0 ? '' : googleMapList[0][take - 1].uuid,
     });
   }
 }
