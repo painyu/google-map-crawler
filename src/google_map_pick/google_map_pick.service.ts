@@ -11,6 +11,16 @@ export class GoogleMapPickService {
     private readonly googleMapRepository: Repository<GoogleMapPick>,
   ) {}
   async queryPage(uuid: string, jobId: string): Promise<ResultData> {
+    const isExit = await this.googleMapRepository
+      .createQueryBuilder('google_map_pick')
+      .andWhere('google_map_pick.uuid = :uuid', { uuid })
+      .getOne();
+    if (!isExit) {
+      return ResultData.ok({
+        list: [],
+        uuid: '',
+      });
+    }
     const queryBuilder = this.googleMapRepository
       .createQueryBuilder('google_map_pick')
       .andWhere('google_map_pick.job_id = :jobId', { jobId });
@@ -27,7 +37,11 @@ export class GoogleMapPickService {
     return ResultData.ok({
       list: googleMapList[0],
       uuid:
-        googleMapList[0].length === 0 ? '' : googleMapList[0][take - 1].uuid,
+        googleMapList[0].length < take
+          ? null
+          : googleMapList[0].length === 0
+            ? null
+            : googleMapList[0][take - 1].uuid,
     });
   }
 }
