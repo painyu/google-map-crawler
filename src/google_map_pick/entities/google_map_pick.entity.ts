@@ -4,7 +4,7 @@ import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
 export class GoogleMapPick {
   @PrimaryColumn()
   @PrimaryGeneratedColumn()
-  uuid: string;
+  id: number;
   @Column()
   name: string;
   @Column()

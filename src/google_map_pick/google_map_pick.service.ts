@@ -10,38 +10,38 @@ export class GoogleMapPickService {
     @InjectRepository(GoogleMapPick)
     private readonly googleMapRepository: Repository<GoogleMapPick>,
   ) {}
-  async queryPage(uuid: string, jobId: string): Promise<ResultData> {
+  async queryPage(id: number, jobId: string): Promise<ResultData> {
     const isExit = await this.googleMapRepository
       .createQueryBuilder('google_map_pick')
-      .andWhere('google_map_pick.uuid = :uuid', { uuid })
+      .andWhere('google_map_pick.id = :id', { id })
       .getOne();
     if (!isExit) {
       return ResultData.ok({
         list: [],
-        uuid: '',
+        id: null,
       });
     }
     const queryBuilder = this.googleMapRepository
       .createQueryBuilder('google_map_pick')
       .andWhere('google_map_pick.job_id = :jobId', { jobId });
-    if (uuid) {
-      queryBuilder.andWhere('google_map_pick.uuid > :uuid', { uuid });
+    if (id) {
+      queryBuilder.andWhere('google_map_pick.id > :id', { id });
     }
     const min = 3;
     const max = 5;
     const take = Math.floor(Math.random() * (max - min + 1)) + min;
     const googleMapList = await queryBuilder
-      .orderBy({ uuid: 'ASC' })
+      .orderBy({ id: 'ASC' })
       .take(take)
       .getManyAndCount();
     return ResultData.ok({
       list: googleMapList[0],
-      uuid:
+      id:
         googleMapList[0].length < take
           ? null
           : googleMapList[0].length === 0
             ? null
-            : googleMapList[0][take - 1].uuid,
+            : googleMapList[0][take - 1].id,
     });
   }
 }
