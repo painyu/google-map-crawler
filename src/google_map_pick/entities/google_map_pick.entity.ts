@@ -16,7 +16,7 @@ export class GoogleMapPick {
   phone: string;
 
   @Column()
-  emails:string;
+  emails: string;
 
   @Column()
   labels: string;
@@ -50,4 +50,10 @@ export class GoogleMapPick {
 
   @Column()
   job_id: string;
+
+  @Column()
+  latitude: string;
+
+  @Column()
+  longitude: string;
 }
