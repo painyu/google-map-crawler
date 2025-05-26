@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ResultData } from '../utils/result';
 import { GoogleMapPick } from './entities/google_map_pick.entity';
 import { Repository } from 'typeorm';
-import { CustomHttpService } from 'src/common/custom_http_service';
+import { CustomHttpService } from '../common/custom_http_service';
 import axios from 'axios';
 @Injectable()
 export class GoogleMapPickService {
