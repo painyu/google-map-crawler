@@ -4,7 +4,7 @@ import { ResultData } from '../utils/result';
 import { GoogleMapPick } from './entities/google_map_pick.entity';
 import { Repository } from 'typeorm';
 import { CustomHttpService } from 'src/common/custom_http_service';
-
+import axios from 'axios';
 @Injectable()
 export class GoogleMapPickService {
   private readonly logger = new Logger(GoogleMapPickService.name);
@@ -64,7 +64,7 @@ export class GoogleMapPickService {
   async searchLocations(url_th: string): Promise<ResultData> {
     return await this.fetchRawData(url_th);
   }
-  private async fetchRawData(url_th :string): Promise<any> {
+  private async fetchRawData(url_th: string): Promise<any> {
     try {
       const response = await this.customHttpService.get(url_th, {
         headers: {
@@ -140,5 +140,107 @@ export class GoogleMapPickService {
     });
     this.googleMapRepository.save(result);
     return result;
+  }
+
+  //----------------------------------------------------
+  EARTH_RADIUS = 6370.856;
+  RAD_PER_DEGREE = (2 * Math.PI) / 360;
+
+  agents = [
+    'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36',
+    'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/532.5 (KHTML, like Gecko) Chrome/4.0.249.0 Safari/532.5',
+    'Mozilla/5.0 (Windows; U; Windows NT 5.2; en-US) AppleWebKit/532.9 (KHTML, like Gecko) Chrome/5.0.310.0 Safari/532.9',
+  ];
+
+  async fetchCompanies(lat: number, lng: number): Promise<any[]> {
+    const d1Dict = this.getZoomLevels();
+    const companiesByZoom: Record<number, any[]> = {};
+
+    for (const zoom of Object.keys(d1Dict).map(Number)) {
+      const d1 = d1Dict[zoom];
+      const url = `https://www.google.com/search?tbm=map&authuser=0&hl=en&pb=!4m12!1m3!1d${d1}!2d${lng}!3d${lat}`;
+      let page = 0;
+      const results: any[] = [];
+
+      while (true) {
+        const pageId = page === 0 ? '' : `!8i${page}`;
+        const finalUrl = `${url}${this.pageSuffix(pageId)}`;
+
+        try {
+          const response = await axios.get(finalUrl, {
+            headers: { 'User-Agent': this.randomAgent() },
+          });
+          const pageResults = this.parseCompanyData(response.data);
+          if (!pageResults.length) break;
+
+          results.push(...pageResults);
+          page += 20;
+        } catch (err) {
+          this.logger.error(`Error fetching zoom ${zoom}:`, err);
+          break;
+        }
+      }
+
+      companiesByZoom[zoom] = results;
+    }
+
+    return (
+      companiesByZoom[Math.max(...Object.keys(companiesByZoom).map(Number))] ||
+      []
+    );
+  }
+
+  private parseCompanyData(rawText: string): any[] {
+    try {
+      const json = JSON.parse(rawText.replace('/*""*/', ''));
+      const dStr = json.d.replace(")]}'", '').trim();
+      const dList = JSON.parse(dStr);
+      const companyList = dList[0][1];
+      const results: any[] = [];
+
+      for (const company of companyList) {
+        const name = company[14]?.[11];
+        const url = decodeURIComponent(company[14]?.[7]?.[0] || '');
+        const address = company[14]?.[39] || company[14]?.[18];
+        const phone = company[14]?.[178]?.[0]?.[0] || company[14]?.[3]?.[0];
+        const category = company[14]?.[13]?.join('>') || '';
+        const city = company[14]?.[14];
+
+        if (name) {
+          results.push({ name, url, address, phone, category, city });
+        }
+      }
+
+      return results;
+    } catch (e) {
+      this.logger.error('Failed to parse company data', e);
+      return [];
+    }
+  }
+
+  private getZoomLevels(): Record<number, number> {
+    const zoomLevels: Record<number, number> = { 2: 94618532.08008283 };
+    for (let z = 3; z <= 21; z++) {
+      zoomLevels[z] = zoomLevels[z - 1] / 2;
+    }
+    return zoomLevels;
+  }
+
+  private pageSuffix(pageId: string): string {
+    return `!2m3!1f0!2f0!3f0!3m2!1i784!2i644!4f13.1!7i20${pageId}!10b1!...`;
+  }
+
+  private randomAgent(): string {
+    return this.agents[Math.floor(Math.random() * this.agents.length)];
+  }
+
+  private latKmToDegree(disKm = 111, radius = this.EARTH_RADIUS): number {
+    return disKm / radius / this.RAD_PER_DEGREE;
+  }
+
+  private lngKmToDegree(disKm = 1, centerLat = 22): number {
+    const realRadius =
+      this.EARTH_RADIUS * Math.cos(centerLat * this.RAD_PER_DEGREE);
+    return disKm / realRadius / this.RAD_PER_DEGREE;
   }
 }

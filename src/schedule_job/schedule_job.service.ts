@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ScheduleJob } from './entities/schedule_job.entity';
 import { Repository } from 'typeorm';
 import { ResultData } from '../utils/result';
-import { UUID } from 'typeorm/driver/mongodb/bson.typings';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class ScheduleJobService {
@@ -15,9 +15,9 @@ export class ScheduleJobService {
 
   async create(createDto: CreateScheduleJobDto): Promise<ResultData> {
     const googleMapPick = this.scheduleJobRepository.create(createDto);
-    googleMapPick.uuid = UUID.toString();
+    googleMapPick.uuid = uuidv4();
     await this.scheduleJobRepository.save(googleMapPick);
-    return ResultData.ok();
+    return ResultData.ok({ uuid: googleMapPick.uuid });
   }
 
   async findAll(): Promise<ResultData> {

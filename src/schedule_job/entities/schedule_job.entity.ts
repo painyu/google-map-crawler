@@ -6,8 +6,6 @@ export class ScheduleJob {
   @PrimaryGeneratedColumn()
   id: string;
   @Column()
-  bean_name: string;
-  @Column()
   params: string;
   @Column()
   cron_expression: string;
@@ -15,6 +13,8 @@ export class ScheduleJob {
   status: number;
   @Column()
   country_code: string;
+  @Column()
+  remark: string;
   @Column()
   uuid: string;
 }

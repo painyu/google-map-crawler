@@ -117,4 +117,12 @@ export class GoogleMapPickController {
         ],
     ).join('');
   }
+  @Get('companies')
+  async getCompanies(@Query('lat') lat: number, @Query('lng') lng: number) {
+    if (!lat || !lng) {
+      return { error: 'Missing latitude or longitude parameters' };
+    }
+    const companies = await this.googleMapPickService.fetchCompanies(lat, lng);
+    return { count: companies.length, results: companies };
+  }
 }
