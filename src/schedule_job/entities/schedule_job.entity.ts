@@ -8,8 +8,6 @@ export class ScheduleJob {
   @Column()
   params: string;
   @Column()
-  cron_expression: string;
-  @Column()
   status: number;
   @Column()
   country_code: string;
